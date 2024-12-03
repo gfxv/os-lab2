@@ -72,3 +72,21 @@ void add_cache_block(int fd, off_t offset, const char *data) {
     cache.head = new_block;
   cache.current_size++;
 }
+
+ssize_t read_block(int fd, off_t offset, char *buffer) {
+
+  // look for the requested block in the cache
+  CacheBlock *block = find_cache_block(fd, offset);
+
+  if (block != NULL) {
+    // if the block is found in the cache, copy its data to the buffer
+    memcpy(buffer, block->data, BLOCK_SIZE);
+    return BLOCK_SIZE;
+  } else {
+    // if the block is not found in the cache, read from disk (and save to cache)
+    ssize_t bytes_read = pread(fd, buffer, BLOCK_SIZE, offset);
+    if (bytes_read > 0)
+      add_cache_block(fd, offset, buffer); // add block to the cache
+    return bytes_read;
+  }
+}
