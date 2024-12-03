@@ -36,3 +36,35 @@ CacheBlock *find_cache_block(int fd, off_t offset) {
   }
   return NULL;
 }
+
+void add_cache_block(int fd, off_t offset, const char *data) {
+  // check if cache is full
+  if (cache.current_size >= CACHE_SIZE) {
+    CacheBlock *old_block = cache.head;
+    if (old_block) {
+      // remove the oldest block
+      cache.head = old_block->next;
+      if (cache.head)
+        cache.head->prev = NULL;
+      if (cache.tail == old_block)
+        cache.tail = NULL;
+      free(old_block);
+      cache.current_size--;
+    }
+  }
+
+  // create and add the new block to the tail (most recent)
+  CacheBlock *new_block = (CacheBlock *)malloc(sizeof(CacheBlock));
+  new_block->fd = fd;
+  new_block->offset = offset;
+  memcpy(new_block->data, data, BLOCK_SIZE);
+
+  new_block->next = NULL;
+  new_block->prev = cache.tail;
+  if (cache.tail)
+    cache.tail->next = new_block;
+  cache.tail = new_block;
+  if (cache.head == NULL)
+    cache.head = new_block;
+  cache.current_size++;
+}
