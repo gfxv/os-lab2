@@ -11,3 +11,40 @@ int c_open(const char *path) {
   return open(path, O_RDWR | O_SYNC | F_NOCACHE);
 }
 
+// align to block boundary
+off_t align_offset(off_t offset) {
+  // ensures that the offset is rounded
+  // down to the nearest multiple of the BLOCK_SIZE
+  //
+  // guarantees that the data we read starts from the
+  // beginning of a block and avoids partial block reads
+  return offset & ~(BLOCK_SIZE - 1);
+}
+
+ssize_t c_read(int fd, void *buf, size_t count) {
+  off_t offset = lseek(fd, 0, SEEK_CUR);
+  ssize_t bytes_read = 0;
+  size_t remaining = count;
+
+  while (remaining > 0) {
+    // align the offset to the block boundary
+    off_t block_offset = align_offset(offset);
+    char block[BLOCK_SIZE];
+
+    ssize_t bytes_in_block = read_block(fd, block_offset, block);
+    if (bytes_in_block <= 0)
+      return bytes_in_block;
+
+    // copy data from the block to the buffer (either remaining or block size)
+    size_t to_copy = remaining < bytes_in_block ? remaining : bytes_in_block;
+
+    memcpy(buf + bytes_read, block + (offset - block_offset), to_copy);
+
+    bytes_read += to_copy;
+    remaining -= to_copy;
+    offset += to_copy;
+  }
+
+  return bytes_read;
+}
+
