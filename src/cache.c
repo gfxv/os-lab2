@@ -12,8 +12,6 @@
 #define BLOCK_SIZE 4096
 #define CACHE_SIZE 8
 
-Cache cache = {NULL, NULL, 0}; // initialize empty cache
-
 CacheBlock *find_cache_block(int fd, off_t offset) {
   CacheBlock *block = cache.head;
   while (block != NULL) {

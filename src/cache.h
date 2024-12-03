@@ -20,6 +20,8 @@ typedef struct {
   int current_size;
 } Cache;
 
+extern Cache cache; 
+
 CacheBlock *find_cache_block(int fd, off_t offset);
 void add_cache_block(int fd, off_t offset, const char *data);
 ssize_t read_block(int fd, off_t offset, char *buffer);
