@@ -47,7 +47,6 @@ int c_close(int fd) {
     block = block->next;
   }
 
-  // Close the file descriptor
   return close(fd);
 }
 
@@ -113,3 +112,15 @@ ssize_t c_write(int fd, const void *buf, size_t count) {
 
   return bytes_written;
 }
+
+
+int c_fsync(int fd) {
+  // write all blocks back to disk
+  CacheBlock *block = cache.head;
+  while (block != NULL) {
+    pwrite(block->fd, block->data, BLOCK_SIZE, block->offset);
+    block = block->next;
+  }
+  return fsync(fd);
+}
+
