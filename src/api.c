@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
@@ -11,7 +12,42 @@ int c_open(const char *path) {
   return open(path, O_RDWR | O_SYNC | F_NOCACHE);
 }
 
-int c_close(int fd) { 
+int c_close(int fd) {
+  // remove fd from cache before closing it
+  CacheBlock *block = cache.head;
+  while (block != NULL) {
+    if (block->fd == fd) {
+
+      // if the block is at the head of the cache
+      if (block == cache.head) {
+        cache.head = block->next;
+        if (cache.head)
+          cache.head->prev = NULL;
+      }
+
+      // if the block is at the tail of the cache
+      if (block == cache.tail) {
+        cache.tail = block->prev;
+        if (cache.tail)
+          cache.tail->next = NULL;
+      }
+
+      // if the block is somewhere in the middle
+      if (block->prev != NULL) {
+        block->prev->next = block->next;
+      }
+      if (block->next != NULL) {
+        block->next->prev = block->prev;
+      }
+
+      free(block);
+      cache.current_size--;
+      break;
+    }
+    block = block->next;
+  }
+
+  // Close the file descriptor
   return close(fd);
 }
 
