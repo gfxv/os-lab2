@@ -83,10 +83,27 @@ ssize_t read_block(int fd, off_t offset, char *buffer) {
     memcpy(buffer, block->data, BLOCK_SIZE);
     return BLOCK_SIZE;
   } else {
-    // if the block is not found in the cache, read from disk (and save to cache)
+    // if the block is not found in the cache,
+    // read from disk (and save to cache)
     ssize_t bytes_read = pread(fd, buffer, BLOCK_SIZE, offset);
     if (bytes_read > 0)
       add_cache_block(fd, offset, buffer); // add block to the cache
     return bytes_read;
+  }
+}
+
+ssize_t write_block(int fd, off_t offset, const char *data) {
+
+  // look for the requested block in the cache
+  CacheBlock *block = find_cache_block(fd, offset);
+
+  if (block != NULL) {
+    // if the block is found in the cache, update its data
+    memcpy(block->data, data, BLOCK_SIZE);
+    return BLOCK_SIZE;
+  } else {
+    // add to cache, if the block is not found
+    add_cache_block(fd, offset, data);
+    return BLOCK_SIZE;
   }
 }
