@@ -7,8 +7,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define BLOCK_SIZE 4096 // Size of each block in bytes (4 KB)
-#define CACHE_SIZE 8    // Number of blocks that can be cached
+#define BLOCK_SIZE 4096
+#define CACHE_SIZE 8
 
 typedef struct CacheBlock {
   int fd;
@@ -26,3 +26,13 @@ typedef struct {
 
 Cache cache = {NULL, NULL, 0}; // initialize empty cache
 
+CacheBlock *find_cache_block(int fd, off_t offset) {
+  CacheBlock *block = cache.head;
+  while (block != NULL) {
+    if (block->fd == fd && block->offset == offset) {
+      return block;
+    }
+    block = block->next;
+  }
+  return NULL;
+}
