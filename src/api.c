@@ -1,3 +1,4 @@
+#include "api.h"
 #include "cache.h"
 
 #include <errno.h>
@@ -112,7 +113,6 @@ ssize_t c_write(int fd, const void *buf, size_t count) {
 
   return bytes_written;
 }
-
 
 int c_fsync(int fd) {
   // write all blocks back to disk
