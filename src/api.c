@@ -11,6 +11,10 @@ int c_open(const char *path) {
   return open(path, O_RDWR | O_SYNC | F_NOCACHE);
 }
 
+int c_close(int fd) { 
+  return close(fd);
+}
+
 // align to block boundary
 off_t align_offset(off_t offset) {
   // ensures that the offset is rounded
