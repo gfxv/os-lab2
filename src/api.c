@@ -48,3 +48,28 @@ ssize_t c_read(int fd, void *buf, size_t count) {
   return bytes_read;
 }
 
+ssize_t c_write(int fd, const void *buf, size_t count) {
+  off_t offset = lseek(fd, 0, SEEK_CUR);
+  ssize_t bytes_written = 0;
+  size_t remaining = count;
+
+  while (remaining > 0) {
+    // align the offset to the block boundary
+    off_t block_offset = align_offset(offset);
+    char block[BLOCK_SIZE];
+
+    // copy data into block buffer (either remaining or full block size)
+    size_t to_copy = remaining < BLOCK_SIZE ? remaining : BLOCK_SIZE;
+    memcpy(block, buf + bytes_written, to_copy);
+
+    ssize_t written = write_block(fd, block_offset, block);
+    if (written <= 0)
+      return written;
+
+    bytes_written += to_copy;
+    remaining -= to_copy;
+    offset += to_copy;
+  }
+
+  return bytes_written;
+}
