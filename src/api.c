@@ -1,5 +1,5 @@
-#include "api.h"
-#include "cache.h"
+#include "../include/api.h"
+#include "../include/cache.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -9,8 +9,17 @@
 #include <unistd.h>
 
 int c_open(const char *path) {
+  int flags = O_RDWR | O_SYNC;
+
+#if defined(__APPLE__)
+  flags |= F_NOCACHE;
+
+#elif defined(__linux__)
+  flags |= O_DIRECT;
+#endif
+
   // NOTE: F_NOCACHE for macos, O_DIRECT for linux
-  return open(path, O_RDWR | O_SYNC | F_NOCACHE);
+  return open(path, flags);
 }
 
 int c_close(int fd) {

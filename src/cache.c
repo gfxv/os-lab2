@@ -1,4 +1,4 @@
-#include "cache.h"
+#include "../include/cache.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -9,8 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define BLOCK_SIZE 4096
-#define CACHE_SIZE 8
+Cache cache = {NULL, NULL, 0};
 
 CacheBlock *find_cache_block(int fd, off_t offset) {
   CacheBlock *block = cache.head;
