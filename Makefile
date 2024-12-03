@@ -1,38 +1,38 @@
-# Compiler and linker settings
 CC = gcc
-CFLAGS = -Wall -Wextra -fPIC
-LDFLAGS = -shared
+CFLAGS = -Wall -g
+LDFLAGS = -Llib -lcache
 
-# File names
-LIB_NAME = libcache.so
-SRC_DIR = src
-OBJ_DIR = obj
-INCLUDE_DIR = include
+SRC_NO_CACHE = src/ema_search_no_cache.c
+SRC_WITH_CACHE = src/ema_search_with_cache.c
 
-# Source files
-SRCS = $(wildcard $(SRC_DIR)/*.c)   # Get all .c files in the src directory
-OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)  # Object files corresponding to the source files
+OBJ_NO_CACHE = $(SRC_NO_CACHE:.c=.o)
+OBJ_WITH_CACHE = $(SRC_WITH_CACHE:.c=.o)
 
-# Include directories
-INCLUDES = -I$(INCLUDE_DIR)
+EXE_NO_CACHE = ema_search_no_cache
+EXE_WITH_CACHE = ema_search_with_cache
 
-# Targets
-all: $(LIB_NAME)
+LIB_DIR = lib
 
-# Rule to create the shared library (.so)
-$(LIB_NAME): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^
+all: $(EXE_NO_CACHE) $(EXE_WITH_CACHE)
 
-# Rule to compile .c files into .o object files
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
+# Build the executable for ema_search_no_cache.c (without cache)
+$(EXE_NO_CACHE): $(OBJ_NO_CACHE)
+	$(CC) $(CFLAGS) $(OBJ_NO_CACHE) -o $@
 
-# Clean the build
+# Build the executable for ema_search_with_cache.c (with cache)
+$(EXE_WITH_CACHE): $(OBJ_WITH_CACHE)
+	$(CC) $(CFLAGS) $(OBJ_WITH_CACHE) -o $@ $(LDFLAGS)
+
+# Rule to compile ema_search_no_cache.c without cache
+$(OBJ_NO_CACHE): src/ema_search_no_cache.c
+	$(CC) $(CFLAGS) -c src/ema_search_no_cache.c -o $(OBJ_NO_CACHE)
+
+# Rule to compile ema_search_with_cache.c with cache
+$(OBJ_WITH_CACHE): src/ema_search_with_cache.c
+	$(CC) $(CFLAGS) -c src/ema_search_with_cache.c -o $(OBJ_WITH_CACHE)
+
 clean:
-	rm -f $(OBJ_DIR)/*.o $(LIB_NAME)
+	rm -f $(OBJ_NO_CACHE) $(OBJ_WITH_CACHE) $(EXE_NO_CACHE) $(EXE_WITH_CACHE)
 
-# Rebuild everything
-rebuild: clean all
-
-.PHONY: all clean rebuild
+.PHONY: all clean
 
