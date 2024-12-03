@@ -124,3 +124,7 @@ int c_fsync(int fd) {
   return fsync(fd);
 }
 
+// ???
+off_t c_lseek(int fd, off_t offset, int whence) {
+  return lseek(fd, offset, whence);
+}
