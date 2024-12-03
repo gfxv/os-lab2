@@ -42,6 +42,10 @@ void add_cache_block(int fd, off_t offset, const char *data) {
   if (cache.current_size >= CACHE_SIZE) {
     CacheBlock *old_block = cache.head;
     if (old_block) {
+
+      // write the data of the oldest block back to disk to persist any changes
+      pwrite(old_block->fd, old_block->data, BLOCK_SIZE, old_block->offset);
+
       // remove the oldest block
       cache.head = old_block->next;
       if (cache.head)
