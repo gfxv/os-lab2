@@ -1,6 +1,6 @@
 # Compiler and linker settings
 CC = gcc
-CFLAGS = -Wall -Wextra -fPIC
+CFLAGS = -D_GNU_SOURCE -Wall -Wextra -fPIC
 LDFLAGS = -shared
 
 # File names

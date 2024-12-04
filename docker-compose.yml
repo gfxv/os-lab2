@@ -11,3 +11,4 @@ services:
     volumes:
       - .:/workspace
     tty: true
+
