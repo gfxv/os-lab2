@@ -31,7 +31,6 @@ int process_file(int fd, const char *substring) {
   char buffer[BUFFER_SIZE];
 
   while (1) {
-    // Move the file cursor to the correct offset using c_lseek
     if (c_lseek(fd, offset, SEEK_SET) == (off_t)-1) {
       perror("Error seeking file");
       return EXIT_FAILURE;
@@ -39,7 +38,7 @@ int process_file(int fd, const char *substring) {
 
     ssize_t bytes_read = c_read(fd, buffer, BUFFER_SIZE);
     if (bytes_read <= 0) {
-      break; // End of file or error
+      break;
     }
 
     int index = search_substring(buffer, substring);
@@ -51,7 +50,7 @@ int process_file(int fd, const char *substring) {
     printf("Not Found substring at offset %lld\n", offset);
 
     iteration++;
-    offset += bytes_read; // Move the offset forward by the number of bytes read
+    offset += bytes_read;
   }
 
   return EXIT_SUCCESS;
@@ -72,7 +71,6 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  // Open the file using c_open, instead of fopen
   int fd = c_open(filename);
   if (fd == -1) {
     perror("Error opening file");
@@ -90,7 +88,7 @@ int main(int argc, char *argv[]) {
   }
   clock_t total_end = clock();
 
-  c_close(fd); // Close the file using c_close instead of fclose
+  c_close(fd);
 
   printf("\n");
   printf(">>> Total execution time: %lf seconds <<<\n\n",
