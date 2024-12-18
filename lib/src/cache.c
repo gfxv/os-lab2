@@ -11,6 +11,19 @@
 
 Cache cache = {NULL, NULL, 0};
 
+void status() {
+  printf("### CACHE INFO START ###\n");
+  printf("cache size: %d\n", cache.current_size);
+
+  CacheBlock *block = cache.head;
+  while (block != NULL) {
+    printf("[fd: %d, offset: %lld]\n", block->fd, block->offset);
+    printf("data: %s\n", block->data);
+    block = block->next;
+  }
+  printf("### CACHE INFO END ###\n");
+}
+
 CacheBlock *find_cache_block(int fd, off_t offset) {
   CacheBlock *block = cache.head;
   while (block != NULL) {
@@ -23,31 +36,20 @@ CacheBlock *find_cache_block(int fd, off_t offset) {
 }
 
 void add_cache_block(int fd, off_t offset, const char *data) {
-  // check if cache is full
   if (cache.current_size >= CACHE_SIZE) {
-    CacheBlock *old_block = cache.head;
-    if (old_block) {
-
-      // write the data of the oldest block back to disk to persist any changes
-      pwrite(old_block->fd, old_block->data, BLOCK_SIZE, old_block->offset);
-
-      // remove the oldest block
-      cache.head = old_block->next;
-      if (cache.head)
-        cache.head->prev = NULL;
-      if (cache.tail == old_block)
-        cache.tail = NULL;
-      free(old_block);
-      cache.current_size--;
-    }
+    evict_block();
   }
 
-  // create and add the new block to the tail (most recent)
+  // create new cache block
   CacheBlock *new_block = (CacheBlock *)malloc(sizeof(CacheBlock));
   new_block->fd = fd;
   new_block->offset = offset;
   memcpy(new_block->data, data, BLOCK_SIZE);
 
+  insert_block(new_block);
+}
+
+void insert_block(CacheBlock *new_block) {
   new_block->next = NULL;
   new_block->prev = cache.tail;
   if (cache.tail)
@@ -58,37 +60,24 @@ void add_cache_block(int fd, off_t offset, const char *data) {
   cache.current_size++;
 }
 
-ssize_t read_block(int fd, off_t offset, char *buffer) {
-
-  // look for the requested block in the cache
-  CacheBlock *block = find_cache_block(fd, offset);
-
-  if (block != NULL) {
-    // if the block is found in the cache, copy its data to the buffer
-    memcpy(buffer, block->data, BLOCK_SIZE);
-    return BLOCK_SIZE;
-  } else {
-    // if the block is not found in the cache,
-    // read from disk (and save to cache)
-    ssize_t bytes_read = pread(fd, buffer, BLOCK_SIZE, offset);
-    if (bytes_read > 0)
-      add_cache_block(fd, offset, buffer); // add block to the cache
-    return bytes_read;
+void evict_block() {
+  CacheBlock *old_block = cache.head;
+  if (!old_block) {
+    return;
   }
-}
 
-ssize_t write_block(int fd, off_t offset, const char *data) {
+  // write the data of the oldest block back to disk to persist any changes
+  pwrite(old_block->fd, old_block->data, BLOCK_SIZE, old_block->offset);
 
-  // look for the requested block in the cache
-  CacheBlock *block = find_cache_block(fd, offset);
-
-  if (block != NULL) {
-    // if the block is found in the cache, update its data
-    memcpy(block->data, data, BLOCK_SIZE);
-    return BLOCK_SIZE;
+  if (cache.head == cache.tail) {
+    // Only one cache block
+    cache.head = NULL;
+    cache.tail = NULL;
   } else {
-    // add to cache, if the block is not found
-    add_cache_block(fd, offset, data);
-    return BLOCK_SIZE;
+    // More than one cache block
+    cache.head = cache.head->next;
+    cache.head->prev = NULL;
   }
+  free(old_block);
+  cache.current_size--;
 }
