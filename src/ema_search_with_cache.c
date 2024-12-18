@@ -1,4 +1,5 @@
 #include "../lib/include/api.h"
+#include "../lib/include/cache.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,15 +41,14 @@ int process_file(int fd, const char *substring) {
     if (bytes_read <= 0) {
       break;
     }
-
+    printf("processig buffer of size %zd: %s\n", bytes_read, buffer);
+    status();
+    printf("\n");
     int index = search_substring(buffer, substring);
     if (index != -1) {
       printf("Found substring at position %lld\n", offset + index);
       break;
     }
-
-    printf("Not Found substring at offset %lld\n", offset);
-
     iteration++;
     offset += bytes_read;
   }
@@ -76,6 +76,9 @@ int main(int argc, char *argv[]) {
     perror("Error opening file");
     return EXIT_FAILURE;
   }
+  
+  printf("Initial cache state:\n");
+  status();
 
   clock_t total_start = clock();
   for (int r = 0; r < repeats; r++) {
