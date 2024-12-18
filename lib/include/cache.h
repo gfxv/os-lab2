@@ -4,7 +4,7 @@
 #include <sys/types.h>
 
 #define BLOCK_SIZE 4096
-#define CACHE_SIZE 8
+#define CACHE_SIZE 16
 
 typedef struct CacheBlock {
   int fd;
@@ -22,9 +22,10 @@ typedef struct {
 
 extern Cache cache; 
 
+void status();
+void evict_block();
+void insert_block(CacheBlock*);
 CacheBlock *find_cache_block(int fd, off_t offset);
 void add_cache_block(int fd, off_t offset, const char *data);
-ssize_t read_block(int fd, off_t offset, char *buffer);
-ssize_t write_block(int fd, off_t offset, const char *data);
 
 #endif // CACHE_H
