@@ -1,0 +1,20 @@
+version: "3"
+
+vars:
+  CONTAINER_NAME: os-lab2-cocker
+
+tasks:
+  docker-run:
+    desc: "Builds the Docker image and starts the container as daemon"
+    cmds:
+      - docker-compose up --build -d --remove-orphans
+
+  docker-access:
+    desc: "Access the container"
+    cmds:
+      - docker exec -it {{.CONTAINER_NAME}} bash
+
+  docker-stop:
+    desc: "Stop docker container"
+    cmds:
+      - docker stop {{.CONTAINER_NAME}}
