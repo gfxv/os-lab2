@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  uwuntu:
+    image: ubuntu:latest
+    privileged: true
+    container_name: os-lab2-cocker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspace
+    tty: true
+
